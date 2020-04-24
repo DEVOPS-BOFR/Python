@@ -1,0 +1,93 @@
+Building configuration...
+Current configuration : 1802 bytes
+version 12.4
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+hostname R1
+boot-start-marker
+boot-end-marker
+no logging console
+no aaa new-model
+no ip icmp rate-limit unreachable
+ip cef
+no ip domain lookup
+ip domain name test.com
+ip tcp synwait-time 5
+ip ssh version 2
+interface Loopback0
+ description l0_R1
+ ip address 10.10.10.10 255.255.255.255
+interface Ethernet0/0
+ no ip address
+ shutdown
+ duplex auto
+interface GigabitEthernet0/0
+ description Link to R2
+ ip address 172.16.0.5 255.255.255.252
+ duplex full
+ speed 1000
+ media-type gbic
+ negotiation auto
+interface GigabitEthernet1/0
+ description Link to R3
+ ip address 172.16.0.9 255.255.255.252
+ negotiation auto
+interface Ethernet2/0
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/1
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/2
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/3
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/4
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/5
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/6
+ no ip address
+ shutdown
+ duplex half
+interface Ethernet2/7
+ no ip address
+ shutdown
+ duplex half
+router ospf 1
+ log-adjacency-changes
+ network 10.10.10.10 0.0.0.0 area 0
+ network 172.16.0.4 0.0.0.3 area 0
+ network 172.16.0.8 0.0.0.3 area 0
+no ip http server
+no ip http secure-server
+no cdp log mismatch duplex
+control-plane
+gatekeeper
+ shutdown
+banner motd ^C erere ^C
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ password ccna
+ login
+end

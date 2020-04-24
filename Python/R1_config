@@ -1,0 +1,22 @@
+ip domain name test.com
+ip ssh version 2
+banner motd ^C banner ^C
+line vty 0 4
+ login
+ password ccna
+interface GigabitEthernet0/0
+ description Link to R2
+ ip address 172.16.0.5 255.255.255.252
+ no shutdown
+interface GigabitEthernet1/0
+ description Link to R3
+ ip address 172.16.0.9 255.255.255.252
+ no shutdown
+interface Loopback0
+ description l0_R1
+ ip address 10.10.10.10 255.255.255.255
+ no shutdown
+router ospf 1
+ network 10.10.10.10 0.0.0.0 area 0
+ network 172.16.0.4 0.0.0.3 area 0
+ network 172.16.0.8 0.0.0.3 area 0

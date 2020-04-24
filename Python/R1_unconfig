@@ -1,0 +1,18 @@
+no ip domain name test.com
+no ip ssh version 2
+no banner motd # banner #
+line vty 0 4
+ no login
+ no password ccna
+interface GigabitEthernet0/0
+ no description Link to R2
+ no ip address 172.16.0.5 255.255.255.252
+ shutdown
+interface GigabitEthernet1/0
+ no description Link to R3
+ no ip address 172.16.0.9 255.255.255.252
+ shutdown
+no interface Loopback0
+
+no router ospf 1
+
