@@ -1,104 +1,81 @@
-from flask import Flask, request
-from flask_restful import Resource, Api
 from genie.conf import Genie
 
-app = Flask(__name__)
-api = Api(app)
 
-
-class Initiate(Resource):
-    testbed = Genie.init('/home/hh/Documents/Python/testbed.yml')
-    R1 = testbed.devices.R1
-
+class Initiate():
     def __init__(self):
-        print('Hi')
+        self.testbed = Genie.init('/home/hh/Documents/Python/testbed.yml')
+        self.dev = self.testbed.devices.R1
 
-# Connect to devices
-    def get(self, dev = R1):
-        dev.connect()
+        print("Class {0} instantiated".format(self) + '\n')
 
-        print('Connected to {0}'.format(dev))
+    # Connect to devices
+    def connect(self):
+        self.dev.connect()
 
-# Disconnect from devices
-    def post(self, dev = R1):
-        dev.disconnect()
+        print('Connected to {0}'.format(self.dev) + '\n')
 
-        print('Disconnected from {0}'.format(dev))
-
-
-class Prepare_Lab(Resource):
-    R1_unconfig_file = '/home/hh/Documents/Python/R1_unconfig'
-    R2_config_file = '/home/hh/Documents/Python/R2_config'
-    R3_config_file = '/home/hh/Documents/Python/R3_config'
-
-    def __init__(self):
-        pass
-
-# Clean device for new lab
-    def post(self, dev = Initiate.R1, reset = R1_unconfig_file):
-        dev.execute('write erase')
-
-        uncon = Config()                # move?
-        dev.configure(uncon.get(reset))
-
-        print('wiped {0}'.format(dev))
-
-
-class Resume_Lab(Resource):
-    resume_config = '/home/hh/Documents/Python/resume'
-
-    def __init__(self):
-        pass
-
-# Load/resume lab
-    def get(self, dev = Initiate.R1, res = resume_config):
-        a = Config()
-        dev.configure(a.get(res))
+    # Disconnect from devices
+    def disconnect(self):
+        self.dev.disconnect()
         
-        #print('Resume: ' + str(resume))
+        print('Disconnected from {0}'.format(self.dev) + '\n')
+    
 
-# Save/pause lab
-    def post(self, res = resume_config ):
-        a = ''
-                                                    # dict
+class Prepare_Lab():
+    def __init__(self):
+        self.R1_unconfig_file = '/home/hh/Documents/Python/R1_unconfig'
+        
+    # Clean device for new lab
+    def wipe(self, dev, conf):
+        dev.execute('write erase')
+        dev.configure(conf)
+
+        print('wiped {0}'.format(dev) + '\n')
+
+    
+class Resume_Lab():
+    def __init__(self):
+        self.resume_config = '/home/hh/Documents/Python/resume'
+
+    # Load/resume lab
+    def load(self, dev, conf):
+        dev.configure(conf)
+        
+        print('Resumed lab' + '\n')
+
+    # Save/pause lab
+    def save(self, dic):
+        self.conf = ''
         #remove building and current from dict
 
-        for k in solution_conf_dict.keys(): 
-            a += k + '\n'
+        for k in dic.keys():
+            if k.startswith('Building') or k.startswith('Current') or k.startswith('end'):
+                pass
+            else:
+                self.conf += k + '\n'
     
-        for v in solution_conf_dict[k].keys():
-            a += ' ' + v + '\n'  
-
-        conf = Config()
-        conf.post()
-
-        with open(resume_config, 'w') as g:     # move
-            for element in a:
-                g.write(element)
+            for v in dic[k].keys():
+                self.conf += ' ' + v + '\n'
 
 
-class Lab_Progress(Resource):
-    solution_config_file = '/home/hh/Documents/Python/R1_config'
-
+class Lab_Progress():
     def __init__(self):
-        pass
+        self.solution_config_file = '/home/hh/Documents/Python/R1_config'
 
-# Check lab progress
-    def get(self, dev = Initiate.R1, sol = solution_config_file):
-        b = Config()
-        sol_str = b.get(sol)
-        sol_dict = dev.api.get_config_dict(sol_str)
-        
+    # Check lab progress
+    def check(self, dev, conf):
+        sol_dict = dev.api.get_config_dict(conf)
+    
         R1_conf_str = dev.execute('show running-config')
-        R1_conf_dict = dev.api.get_config_dict(R1_conf_str) # dict
+        self.R1_conf_dict = dev.api.get_config_dict(R1_conf_str)
 
-        comp_str = sol_dict.keys() & R1_conf_dict.keys()
+        comp_str = sol_dict.keys() & self.R1_conf_dict.keys()
 
         l = []
 
         for k in sol_dict:
-            if k.startswith('line') or k.startswith('int') or k.startswith('router'):
-                l.append(str(sol_dict[k].keys() & R1_conf_dict[k].keys()))
+            if k.startswith('line') or k.startswith('int') or k.startswith('router') in sol_dict:
+                l.append(str(sol_dict[k].keys() & self.R1_conf_dict[k].keys()))
 
         seperator = ','
         
@@ -106,69 +83,16 @@ class Lab_Progress(Resource):
         lis = list(fin.split(seperator))        
 
         conf_len = len(comp_str) + len(lis)
-        sol_len = len(open(sol).readlines())
-        progress = conf_len / sol_len * 100
+        sol_len = len(open(self.solution_config_file).readlines())
+        self.progress = conf_len / sol_len * 100
 
-        print('Your lab progress is {0}%'.format(progress))
+        print('Your lab progress is {0}%'.format(self.progress) + '\n')
 
 
-class Lab_Test(Resource):
+class End_Lab():
     def __init__(self):
-        pass
+        self.res = '/home/hh/Documents/Python/result'
 
-# Run unit tests
-    def post(self):
-        pass
-
-
-class Convert(Resource):
-    def __init__(self):
-        pass
-
-# Convert string to dictionary
-    def get(self, dev = Initiate.R1, s):
-        dic = dev.api.get_config_dict(s)
-        return dic
-
-
-class Config(Resource):
-    def __init__(self):
-        pass
-
-# Load config file
-    def get(self, fil):
-        with open(fil) as f:
-            var = f.read()
-        print('File read: ' + fil)
-        return var
-
-# Save config file
-    def post(self, fil):
-        with open(fil, 'w') as g:
-            for element in fil:
-                g.write(element)
-
-
-api.add_resource(Initiate, '/init')
-api.add_resource(Prepare_Lab, '/prep')
-api.add_resource(Resume_Lab, '/resume')
-api.add_resource(Lab_Progress, '/prog')
-api.add_resource(Lab_Test, '/test')
-api.add_resource(Convert, '/conv')
-api.add_resource(Config, '/conf')
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-'''
-Load config
-Save config
-'''
-
-
-'''
-Test
-'''
+    def save_result(self, result):
+        with open(self.res, 'w') as f:
+            f.write(str(result))

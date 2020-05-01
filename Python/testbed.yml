@@ -3,7 +3,7 @@ testbed:
 
 devices:
   R1:
-    alias: uut  # required...
+    alias: uut
     os: ios
     type: C7200
     connections:
@@ -33,12 +33,3 @@ devices:
         ip: localhost
         protocol: telnet
         port: 5003
-
-  S1:
-    os: ios
-    type: I86BI_LINUXL2-ADVIPSERVICESK9-M
-    connections:
-      console:
-        ip: localhost
-        protocol: telnet
-        port: 5005
